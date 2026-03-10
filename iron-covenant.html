@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRON COVENANT — Trading Dictator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:       #02030a;
+  --bg2:      #050810;
+  --surface:  #080d18;
+  --surface2: #0c1220;
+  --surface3: #101828;
+  --neon:     #00f0ff;
+  --neon2:    #0af;
+  --neon-dim: rgba(0,240,255,0.08);
+  --neon-glow:rgba(0,240,255,0.25);
+  --red:      #ff2d2d;
+  --red-dim:  rgba(255,45,45,0.1);
+  --red-glow: rgba(255,45,45,0.3);
+  --amber:    #ffaa00;
+  --amber-dim:rgba(255,170,0,0.1);
+  --green:    #00ff88;
+  --green-dim:rgba(0,255,136,0.08);
+  --purple:   #bf00ff;
+  --purple-dim:rgba(191,0,255,0.1);
+  --text:     #c8d8f0;
+  --text2:    rgba(200,216,240,0.55);
+  --text3:    rgba(200,216,240,0.25);
+  --border:   rgba(0,240,255,0.1);
+  --border2:  rgba(0,240,255,0.22);
+  --nav-w:    260px;
+  --r:        4px;
+  --font:     'Rajdhani', sans-serif;
+  --mono:     'Share Tech Mono', monospace;
+  --title:    'Orbitron', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+  font-size: 15px;
+  overflow-x: hidden;
+}
+
+/* Scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Grid background */
+body::before {
+  content:'';
+  position: fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,240,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--neon-dim); border-radius: 2px; }
+
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+aside {
+  width: var(--nav-w);
+  background: rgba(5,8,16,0.97);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top:0; left:0; bottom:0;
+  display: flex; flex-direction: column;
+  z-index: 100;
+  overflow-y: auto;
+  box-shadow: 4px 0 30px rgba(0,240,255,0.04);
+}
+
+.sidebar-top {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.sidebar-top::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--neon), transparent);
+  opacity: 0.4;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-icon {
+  width: 42px; height: 42px;
+  border: 2px solid var(--neon);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 16px var(--neon-glow), inset 0 0 12px rgba(0,240,255,0.05);
+  position: relative;
+  flex-shrink:0;
+  clip-path: polygon(10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%, 0% 10%);
+  background: rgba(0,240,255,0.05);
+}
+
+.brand-name {
+  font-family: var(--title);
+  font-size: 12px; font-weight: 900;
+  color: var(--neon);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px var(--neon-glow);
+  line-height: 1.3;
+}
+
+.brand-sub {
+  font-family: var(--mono);
+  font-size: 9px; color: var(--text3);
+  letter-spacing: 0.15em; margin-top: 2px;
+}
+
+.status-bar {
+  background: rgba(255,45,45,0.08);
+  border: 1px solid rgba(255,45,45,0.2);
+  padding: 8px 12px; margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px; color: var(--red);
+  letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.blink { animation: blink 1.2s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.nav-section { padding: 14px 10px 4px; }
+
+.nav-label {
+  font-family: var(--mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text3); padding: 0 8px; margin-bottom: 4px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  cursor: pointer; color: var(--text2);
+  font-family: var(--font);
+  font-size: 13px; font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+  margin-bottom: 1px;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--neon);
+  opacity: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 0 8px var(--neon);
+}
+
+.nav-item:hover { color: var(--neon); background: var(--neon-dim); }
+.nav-item:hover::before { opacity: 0.6; }
+.nav-item.active { color: var(--neon); background: var(--neon-dim); border-color: var(--border); }
+.nav-item.active::before { opacity: 1; }
+
+.nav-item .ni { font-size: 14px; width: 20px; text-align:center; flex-shrink:0; }
+
+.nav-footer {
+  margin-top: auto;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 9px; color: var(--text3);
+  letter-spacing: 0.1em; line-height: 1.8;
+}
+
+/* ══════════════════════════════
+   MAIN
+══════════════════════════════ */
+main {
+  margin-left: var(--nav-w);
+  flex: 1; display: flex; flex-direction: column;
+  position: relative; z-index: 1;
+}
+
+.topbar {
+  height: 50px;
+  background: rgba(2,3,10,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 28px; gap: 14px;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 1px 0 rgba(0,240,255,0.06);
+}
+
+.tb-title {
+  font-family: var(--title);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.12em; color: var(--neon);
+  text-shadow: 0 0 12px var(--neon-glow);
+  text-transform: uppercase;
+}
+
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.hud-badge {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 700;
+  padding: 4px 12px;
+  border: 1px solid;
+  letter-spacing: 0.06em;
+}
+
+.hud-red { border-color: rgba(255,45,45,0.4); color: var(--red); background: rgba(255,45,45,0.07); box-shadow: 0 0 10px rgba(255,45,45,0.1); }
+.hud-neon { border-color: rgba(0,240,255,0.3); color: var(--neon); background: rgba(0,240,255,0.05); }
+
+.content { padding: 28px; flex: 1; }
+
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; animation: pageIn 0.2s ease both; }
+@keyframes pageIn { from{opacity:0;transform:translateX(10px)} to{opacity:1;transform:translateX(0)} }
+
+/* ══════════════════════════════
+   COMPONENTS
+══════════════════════════════ */
+
+/* Page header */
+.ph { margin-bottom: 24px; }
+.ph h2 {
+  font-family: var(--title);
+  font-size: 20px; font-weight: 900;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--neon);
+  text-shadow: 0 0 20px var(--neon-glow), 0 0 60px rgba(0,240,255,0.1);
+  margin-bottom: 6px;
+}
+.ph p { font-size: 14px; color: var(--text2); line-height: 1.5; font-family: var(--mono); }
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content:'';
+  position: absolute;
+  top:0; left:0; right:0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,240,255,0.3), transparent);
+}
+
+.card-head {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--neon); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.card-head::before {
+  content:'▶'; font-size: 8px;
+  color: var(--neon);
+  text-shadow: 0 0 6px var(--neon);
+}
+
+/* Brutal card — RED */
+.card-brutal {
+  background: rgba(255,45,45,0.04);
+  border: 1px solid rgba(255,45,45,0.25);
+  padding: 20px 22px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-brutal::before {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--red), transparent);
+  box-shadow: 0 0 10px var(--red-glow);
+}
+
+.card-brutal-head {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 14px;
+  text-shadow: 0 0 8px var(--red-glow);
+  display: flex; align-items: center; gap: 8px;
+}
+
+.card-brutal-head::before { content:'⚠'; font-size: 10px; }
+
+/* KPI */
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 12px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.kpi::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+}
+
+.kpi-red::after   { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.kpi-neon::after  { background: var(--neon); box-shadow: 0 0 8px var(--neon); }
+.kpi-amber::after { background: var(--amber); box-shadow: 0 0 8px rgba(255,170,0,0.5); }
+.kpi-green::after { background: var(--green); box-shadow: 0 0 8px rgba(0,255,136,0.5); }
+
+.kpi:hover { border-color: var(--border2); }
+.kpi-icon { font-size: 18px; margin-bottom: 8px; }
+.kpi-val {
+  font-family: var(--mono);
+  font-size: 26px; font-weight: 700;
+  letter-spacing: -0.02em; margin-bottom: 2px;
+}
+.kpi-label { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
+.kpi-sub { font-family: var(--mono); font-size: 10px; margin-top: 6px; letter-spacing: 0.05em; }
+
+/* Command box - brutal verse */
+.cmd-box {
+  border: 1px solid rgba(0,240,255,0.2);
+  background: rgba(0,240,255,0.03);
+  padding: 22px 24px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.cmd-box::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--neon);
+  box-shadow: 0 0 12px var(--neon-glow);
+}
+
+.cmd-tag {
+  font-family: var(--mono);
+  font-size: 9px; letter-spacing: 0.25em;
+  text-transform: uppercase; color: var(--neon);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.cmd-tag::after { content:''; flex:1; height:1px; background:rgba(0,240,255,0.15); }
+
+.cmd-verse {
+  font-size: 17px; font-weight: 700;
+  line-height: 1.45; color: var(--text);
+  margin-bottom: 10px;
+  font-family: var(--font);
+  letter-spacing: 0.01em;
+}
+
+.cmd-ref {
+  font-family: var(--mono);
+  font-size: 11px; color: var(--neon);
+  letter-spacing: 0.1em;
+}
+
+.cmd-lesson {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px; color: var(--text2);
+  line-height: 1.7; letter-spacing: 0.02em;
+}
+
+.cmd-lesson strong { color: var(--red); }
+
+/* Brutal text blocks */
+.brutal-text {
+  font-family: var(--mono);
+  font-size: 12px; color: var(--text2);
+  line-height: 1.8; letter-spacing: 0.03em;
+}
+
+.brutal-text .accent { color: var(--neon); font-weight: 700; }
+.brutal-text .danger { color: var(--red); font-weight: 700; }
+.brutal-text .warn   { color: var(--amber); font-weight: 700; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 22px;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 700;
+  cursor: pointer; border: 1px solid;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  transition: all 0.15s ease;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.btn-neon { border-color: var(--neon); color: var(--neon); background: rgba(0,240,255,0.06); }
+.btn-neon:hover { background: rgba(0,240,255,0.14); box-shadow: 0 0 20px var(--neon-glow); }
+.btn-red { border-color: var(--red); color: var(--red); background: rgba(255,45,45,0.07); }
+.btn-red:hover { background: rgba(255,45,45,0.14); box-shadow: 0 0 20px var(--red-glow); }
+.btn-amber { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,0.07); }
+.btn-amber:hover { background: rgba(255,170,0,0.14); }
+.btn:active { transform: scale(0.97); }
+
+/* Form */
+label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 600;
+  color: var(--neon); margin-bottom: 6px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+}
+
+input, select, textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px; padding: 10px 14px;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.05em;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--neon);
+  box-shadow: 0 0 0 2px rgba(0,240,255,0.08), 0 0 16px rgba(0,240,255,0.05);
+}
+
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+select option { background: #0c1220; }
+.fg { margin-bottom: 12px; }
+
+/* Alert */
+.alert {
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 12px; font-weight: 600;
+  line-height: 1.6; letter-spacing: 0.05em;
+  display: none; margin-top: 10px;
+  border-left: 3px solid;
+}
+.alert.show { display: block; }
+.alert-neon  { border-color: var(--neon);  background: rgba(0,240,255,0.05);  color: var(--neon); }
+.alert-red   { border-color: var(--red);   background: rgba(255,45,45,0.07);  color: var(--red); }
+.alert-amber { border-color: var(--amber); background: rgba(255,170,0,0.07);  color: var(--amber); }
+.alert-green { border-color: var(--green); background: rgba(0,255,136,0.07);  color: var(--green); }
+
+/* Progress */
+.prog-wrap { background: rgba(255,255,255,0.04); height: 4px; margin-top: 6px; overflow:hidden; }
+.prog-fill { height: 100%; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+/* Tags */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; font-family: var(--mono);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid;
+}
+.tag-neon   { border-color: rgba(0,240,255,0.3);  color: var(--neon);  background: rgba(0,240,255,0.07); }
+.tag-red    { border-color: rgba(255,45,45,0.35);  color: var(--red);   background: rgba(255,45,45,0.07); }
+.tag-amber  { border-color: rgba(255,170,0,0.3);   color: var(--amber); background: rgba(255,170,0,0.07); }
+.tag-green  { border-color: rgba(0,255,136,0.3);   color: var(--green); background: rgba(0,255,136,0.07); }
+.tag-purple { border-color: rgba(191,0,255,0.3);   color: var(--purple);background: rgba(191,0,255,0.07);}
+
+/* Check items */
+.check-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid rgba(0,240,255,0.06);
+}
+.check-item:last-child { border-bottom: none; }
+
+.check-box {
+  width: 18px; height: 18px; flex-shrink: 0;
+  border: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; margin-top: 2px;
+  background: var(--bg);
+}
+.check-box:hover { border-color: var(--neon); }
+.check-box.checked { background: var(--neon); border-color: var(--neon); box-shadow: 0 0 8px var(--neon-glow); }
+.check-box.checked::after { content:'✓'; font-size: 11px; color: #000; font-weight: 900; font-family: var(--font); }
+.check-box.checked-red { background: var(--red); border-color: var(--red); box-shadow: 0 0 8px var(--red-glow); }
+.check-box.checked-red::after { content:'✓'; font-size: 11px; color: #fff; font-weight: 900; font-family: var(--font); }
+
+.check-text strong { font-family: var(--font); font-size: 14px; font-weight: 700; display: block; margin-bottom: 2px; color: var(--text); letter-spacing: 0.02em; }
+.check-text span { font-family: var(--mono); font-size: 11px; color: var(--text3); line-height: 1.5; }
+
+/* Risk table */
+.risk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.risk-table th {
+  text-align: left; padding: 8px 14px;
+  font-family: var(--mono); font-size: 9px; font-weight: 700;
+  color: var(--neon); text-transform: uppercase;
+  letter-spacing: 0.15em; border-bottom: 1px solid var(--border);
+}
+.risk-table td {
+  padding: 10px 14px; border-bottom: 1px solid rgba(0,240,255,0.04);
+  color: var(--text); font-family: var(--font); vertical-align: middle;
+}
+.risk-table tr:hover td { background: var(--neon-dim); }
+
+/* Journal entry */
+.j-entry {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 16px 18px; margin-bottom: 8px;
+  transition: border-color 0.2s;
+  position: relative;
+}
+.j-entry::before {
+  content:'';
+  position: absolute;
+  left:0; top:0; bottom:0; width:2px;
+  background: var(--neon); opacity: 0.3;
+}
+.j-entry:hover { border-color: var(--border2); }
+.j-entry:hover::before { opacity: 0.8; }
+
+.j-date { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.1em; margin-bottom: 4px; }
+.j-mood-label { font-size: 14px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.02em; }
+.j-text { font-family: var(--mono); font-size: 12px; color: var(--text2); line-height: 1.7; margin-bottom: 10px; }
+.j-verse-block {
+  border-left: 2px solid var(--neon);
+  padding: 8px 14px;
+  font-family: var(--mono); font-size: 11px; color: var(--text2);
+  line-height: 1.7; font-style: italic;
+  background: rgba(0,240,255,0.03);
+}
+.j-verse-ref { font-style:normal; font-weight:700; color:var(--neon); margin-top:4px; font-size:10px; }
+
+/* Phase */
+.phase-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 18px 20px; margin-bottom: 8px;
+  display: flex; gap: 16px;
+  transition: border-color 0.2s;
+}
+.phase-card:hover { border-color: var(--border2); }
+.phase-num {
+  width: 30px; height: 30px; flex-shrink: 0;
+  border: 1px solid; display: flex;
+  align-items: center; justify-content: center;
+  font-family: var(--title); font-size: 12px; font-weight: 900;
+  margin-top: 2px;
+}
+.phase-body { flex: 1; }
+.phase-title { font-family: var(--font); font-size: 15px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 6px; text-transform: uppercase; }
+.phase-text { font-family: var(--mono); font-size: 12px; color: var(--text2); line-height: 1.7; }
+.phase-verse {
+  margin-top: 10px; padding: 8px 12px;
+  font-family: var(--mono); font-size: 11px;
+  line-height: 1.6; font-style: italic;
+  border-left: 2px solid;
+}
+
+/* Lesson item */
+.lesson-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 18px 20px; margin-bottom: 8px;
+  display: flex; gap: 16px;
+  transition: border-color 0.2s;
+  position: relative;
+}
+.lesson-item::before {
+  content:''; position:absolute;
+  left:0; top:0; bottom:0; width:2px;
+  background: var(--neon); opacity: 0;
+  transition: opacity 0.2s;
+}
+.lesson-item:hover { border-color: var(--border2); }
+.lesson-item:hover::before { opacity: 0.5; }
+
+.li-icon { font-size: 24px; flex-shrink:0; margin-top:2px; }
+.li-body { flex:1; }
+.li-title { font-family: var(--font); font-size: 15px; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px; text-transform: uppercase; color: var(--text); }
+.li-text { font-family: var(--mono); font-size: 12px; color: var(--text2); line-height: 1.75; }
+.li-verse {
+  margin-top: 10px; padding: 9px 12px;
+  border-left: 2px solid var(--green);
+  background: var(--green-dim);
+  font-family: var(--mono); font-size: 11px;
+  color: rgba(0,255,136,0.85); line-height: 1.6; font-style: italic;
+}
+.li-verse strong { font-style:normal; color:var(--green); }
+
+/* Affirmation */
+.affirm-box {
+  background: var(--surface2);
+  border: 1px solid rgba(191,0,255,0.25);
+  padding: 22px 24px; margin-bottom: 10px;
+  position: relative; overflow:hidden;
+  transition: border-color 0.2s;
+}
+.affirm-box::before {
+  content:''; position:absolute;
+  top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, var(--purple), transparent);
+  box-shadow: 0 0 10px var(--purple);
+}
+.affirm-box:hover { border-color: rgba(191,0,255,0.5); }
+.a-cmd { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--purple); margin-bottom: 12px; text-transform: uppercase; }
+.a-text { font-family: var(--font); font-size: 18px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.4; color: var(--text); margin-bottom: 12px; }
+.a-ref { font-family: var(--mono); font-size: 11px; color: rgba(191,0,255,0.8); letter-spacing: 0.1em; font-style: italic; }
+
+/* Mood grid */
+.mood-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 12px; }
+.mood-btn {
+  background: var(--surface2); border: 1px solid var(--border);
+  padding: 10px 4px; cursor: pointer; text-align: center;
+  transition: all 0.15s;
+}
+.mood-btn:hover { border-color: var(--border2); }
+.mood-btn.sel { border-color: var(--neon); background: var(--neon-dim); box-shadow: 0 0 10px var(--neon-glow); }
+.mood-btn .me { font-size: 20px; display: block; margin-bottom: 4px; }
+.mood-btn .ml { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* separator */
+.sep { height: 1px; background: var(--border); margin: 18px 0;
+       background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+@media (max-width: 960px) {
+  :root { --nav-w: 54px; }
+  .brand-name, .brand-sub, .nav-label, .nav-item span:not(.ni), .nav-footer, .status-bar { display: none; }
+  .nav-item { justify-content: center; }
+  .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="sidebar-top">
+    <div class="brand">
+      <div class="brand-icon">⚔</div>
+      <div>
+        <div class="brand-name">IRON COVENANT</div>
+        <div class="brand-sub">TRADING DICTATOR v2.0</div>
+      </div>
+    </div>
+    <div class="status-bar">
+      <span class="blink">■</span> VERLIES: −€80.000 ACTIEF
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">// COMMAND CENTER</div>
+    <div class="nav-item active" onclick="nav('home',this)"><span class="ni">⚡</span><span>Briefing</span></div>
+    <div class="nav-item" onclick="nav('dagwoord',this)"><span class="ni">📡</span><span>Bijbels Commando</span></div>
+    <div class="nav-item" onclick="nav('lessen',this)"><span class="ni">💀</span><span>Harde Lessen</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">// DISCIPLINE PROTOCOL</div>
+    <div class="nav-item" onclick="nav('regels',this)"><span class="ni">🔒</span><span>De Wet</span></div>
+    <div class="nav-item" onclick="nav('risico',this)"><span class="ni">🎯</span><span>Risico Calculator</span></div>
+    <div class="nav-item" onclick="nav('herstel',this)"><span class="ni">📈</span><span>Herstelprotocol</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">// MENTALE HYGIËNE</div>
+    <div class="nav-item" onclick="nav('journaal',this)"><span class="ni">🖊</span><span>Zwart Boek</span></div>
+    <div class="nav-item" onclick="nav('affirmaties',this)"><span class="ni">🙏</span><span>Wapenrusting</span></div>
+  </div>
+
+  <div class="nav-footer">
+    OFFLINE SYSTEM ACTIVE<br>
+    BUILD: IC-2025.1<br>
+    STATUS: HERSTEL MODE
+  </div>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="tb-title" id="tb-title">// BRIEFING</div>
+    <div class="tb-right">
+      <div class="hud-badge hud-red"><span class="blink">■</span> −€80K VERLIES</div>
+      <div class="hud-badge hud-neon">⚡ HERSTEL ACTIEF</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ════════════════════════
+       HOME
+  ════════════════════════ -->
+  <div class="page active" id="page-home">
+    <div class="ph">
+      <h2>// TRADER. WAKKER WORDEN.</h2>
+      <p>// Je hebt €80.000 verloren. Dit is geen pech. Dit is de rekening voor jouw onwetendheid, hebzucht en gebrek aan discipline. Lees verder.</p>
+    </div>
+
+    <!-- Opening brutal command -->
+    <div class="card-brutal" style="margin-bottom:20px">
+      <div class="card-brutal-head">BEVEL VAN DE DAG — GEEN DISCUSSIE</div>
+      <div class="cmd-verse" style="font-size:19px;color:var(--red);margin-bottom:10px">
+        "Een man die zijn geest niet beheerst, is als een stad waarvan de muren gebroken zijn."
+      </div>
+      <div class="cmd-ref" style="color:rgba(255,45,45,0.7);margin-bottom:14px">— Spreuken 25:28</div>
+      <div class="brutal-text">
+        <span class="danger">Vertaling voor jou, persoonlijk:</span> Jij hebt €80.000 verloren omdat jij geen controle had over je geest. Niet omdat de markt oneerlijk was. Niet omdat je pech had. <span class="danger">Jij was de zwakste schakel.</span> De markt testte jou. Je zakte.
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid-4">
+      <div class="kpi kpi-red">
+        <div class="kpi-icon">💸</div>
+        <div class="kpi-val" style="color:var(--red)">−€80K</div>
+        <div class="kpi-label">Totaal verlies</div>
+        <div class="kpi-sub" style="color:var(--red)">Jouw lesgeld</div>
+      </div>
+      <div class="kpi kpi-amber">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-val" style="color:var(--amber)">2%</div>
+        <div class="kpi-label">Max risico / trade</div>
+        <div class="kpi-sub" style="color:var(--amber)">Breek dit niet</div>
+      </div>
+      <div class="kpi kpi-neon">
+        <div class="kpi-icon">📡</div>
+        <div class="kpi-val" style="color:var(--neon)" id="kpi-lessen">0</div>
+        <div class="kpi-label">Lessen gelezen</div>
+        <div class="kpi-sub" style="color:var(--text3)">Lees alles</div>
+      </div>
+      <div class="kpi kpi-green">
+        <div class="kpi-icon">🖊</div>
+        <div class="kpi-val" style="color:var(--green)" id="kpi-journal">0</div>
+        <div class="kpi-label">Journaal entries</div>
+        <div class="kpi-sub" style="color:var(--text3)">Elke dag</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Diagnose -->
+      <div class="card">
+        <div class="card-head">// DIAGNOSE — ONGEZOUTEN</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="brutal-text">Emotiebeheersing</span>
+              <span class="tag tag-red">GEFAALD</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:8%;background:var(--red);box-shadow:0 0 6px var(--red)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="brutal-text">Risicobeheer</span>
+              <span class="tag tag-red">GEFAALD</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:5%;background:var(--red);box-shadow:0 0 6px var(--red)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="brutal-text">Blinde optimisme</span>
+              <span class="tag tag-red">DODELIJK</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:97%;background:var(--red);box-shadow:0 0 6px var(--red)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="brutal-text">Discipline</span>
+              <span class="tag tag-red">NON-EXISTENT</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:4%;background:var(--red);box-shadow:0 0 6px var(--red)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="brutal-text">Hoop & Veerkracht</span>
+              <span class="tag tag-neon">AANWEZIG</span>
+            </div>
+            <div class="prog-wrap"><div class="prog-fill" style="width:90%;background:var(--neon);box-shadow:0 0 6px var(--neon)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Directe orders -->
+      <div class="card">
+        <div class="card-head">// DIRECTE ORDERS — GEEN ARGUMENTEN</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--red);font-family:var(--mono);font-size:12px;flex-shrink:0;font-weight:700">01.</span>
+            <span class="brutal-text"><span class="danger">STOP MET LIVE TRADEN.</span> Vandaag. Nu. Direct. Geen uitzonderingen.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--red);font-family:var(--mono);font-size:12px;flex-shrink:0;font-weight:700">02.</span>
+            <span class="brutal-text">Open een <span class="accent">DEMO account</span>. Handel daar minimaal 3 maanden winstgevend voordat je live gaat.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--red);font-family:var(--mono);font-size:12px;flex-shrink:0;font-weight:700">03.</span>
+            <span class="brutal-text">Lees <span class="accent">alle lessen</span> op deze site. Geen excuses.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+            <span style="color:var(--red);font-family:var(--mono);font-size:12px;flex-shrink:0;font-weight:700">04.</span>
+            <span class="brutal-text">Schrijf <span class="accent">elke dag</span> in het journaal. Elke trade. Elke emotie.</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0">
+            <span style="color:var(--red);font-family:var(--mono);font-size:12px;flex-shrink:0;font-weight:700">05.</span>
+            <span class="brutal-text">Onthou dit: <span class="danger">"Hoop" is geen strategie. Een stop-loss is een strategie.</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waarheid blok -->
+    <div class="card-brutal">
+      <div class="card-brutal-head">DE HARDE WAARHEID OVER JOUW SITUATIE</div>
+      <div class="grid-3" style="margin:0">
+        <div style="padding:14px;background:rgba(255,45,45,0.04);border:1px solid rgba(255,45,45,0.12)">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px">⚠ FOUT #1</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Geen stop-loss</div>
+          <div class="brutal-text">Elke verliezende trade die je ooit maakte had een exit plan nodig. Jij had er geen. Dat is niet pech — dat is amateur gedrag.</div>
+        </div>
+        <div style="padding:14px;background:rgba(255,45,45,0.04);border:1px solid rgba(255,45,45,0.12)">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px">⚠ FOUT #2</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Revenge trading</div>
+          <div class="brutal-text">Na een verlies probeerde je het terug te verdienen. Je verdubbelde. Je verloor meer. Dit patroon is verantwoordelijk voor de helft van jouw €80K.</div>
+        </div>
+        <div style="padding:14px;background:rgba(255,45,45,0.04);border:1px solid rgba(255,45,45,0.12)">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px">⚠ FOUT #3</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Blinde optimisme</div>
+          <div class="brutal-text">"Het komt goed" is geen trading strategie. De markt geeft niet om jouw gevoel of geloof. Alleen om jouw gedrag.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       DAGWOORD
+  ════════════════════════ -->
+  <div class="page" id="page-dagwoord">
+    <div class="ph">
+      <h2>// BIJBELS COMMANDO</h2>
+      <p>// Gods woord is niet zacht. Het is scherper dan een tweesnijdend zwaard. Lees het als een bevel, niet als een suggestie.</p>
+    </div>
+
+    <div id="dw-carousel"></div>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <button class="btn btn-red" onclick="prevVers()">◄ VORIGE</button>
+      <button class="btn btn-neon" onclick="nextVers()">VOLGENDE ►</button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">// ALLE BEVELEN — KLIK OM TE LEZEN</div>
+      <div id="alle-verzen" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       LESSEN
+  ════════════════════════ -->
+  <div class="page" id="page-lessen">
+    <div class="ph">
+      <h2>// HARDE LESSEN</h2>
+      <p>// Geen motiverende praat. Geen zachte woorden. Alleen de pijnlijke waarheid die jij eerder had moeten weten.</p>
+    </div>
+    <div id="lessen-container"></div>
+  </div>
+
+  <!-- ════════════════════════
+       DE WET
+  ════════════════════════ -->
+  <div class="page" id="page-regels">
+    <div class="ph">
+      <h2>// DE WET — ONBREEKBAAR</h2>
+      <p>// Dit zijn geen aanbevelingen. Dit zijn bevelen. Overtreed je één regel, dan ben je niet klaar om te traden.</p>
+    </div>
+
+    <div class="cmd-box" style="margin-bottom:20px">
+      <div class="cmd-tag">FUNDAMENT BEVEL</div>
+      <div class="cmd-verse">"Een verstandig mens ziet het gevaar en verbergt zich, maar onervaren mensen lopen door en lijden schade."</div>
+      <div class="cmd-ref">— Spreuken 22:3</div>
+      <div class="cmd-lesson"><strong>BEVEL:</strong> De regels zijn geen keuze. Ze zijn de muur tussen jou en ruin. Je €80K verlies begon op de dag dat je een regel brak en overleefde. Toen dacht je dat de regels optioneel waren. Ze zijn het niet.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">// PRE-TRADE CHECKLIST — VINK AF OF TRADE NIET</div>
+      <div id="checklist-container"></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn btn-neon" onclick="checkAll()">▶ ALLES AANVINKEN</button>
+        <button class="btn btn-red" onclick="resetCheck()">↺ RESET</button>
+      </div>
+      <div class="alert" id="check-alert"></div>
+    </div>
+
+    <div class="card-brutal">
+      <div class="card-brutal-head">DE 10 ONBREEKBARE GEBODEN</div>
+      <div style="display:flex;flex-direction:column">
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">I</div>
+          <div class="check-text"><strong>GIJ ZULT NOOIT MEER DAN 2% RISICEREN PER TRADE</strong><span>Dit is wet. Niet een richtlijn. Wet. Breek je dit, stop je vandaag met traden.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">II</div>
+          <div class="check-text"><strong>GIJ ZULT ALTIJD EEN STOP-LOSS PLAATSEN VÓÓR JE INSTAP</strong><span>Geen stop-loss = geen trade. Geen "ik kijk het wel even aan." Een stop of je gaat niet in.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">III</div>
+          <div class="check-text"><strong>GIJ ZULT NOOIT REVENGE TRADEN NA EEN VERLIES</strong><span>24 uur pauze na een verliezende dag. Geen discussie. Je brein werkt niet meer na verlies.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">IV</div>
+          <div class="check-text"><strong>GIJ ZULT JOUW PLAN VOLGEN — NIET JOUW GEVOEL</strong><span>Jouw gevoel kostte je €80.000. Jouw plan heeft nog nooit getraded. Vertrouw het plan.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">V</div>
+          <div class="check-text"><strong>GIJ ZULT ELKE TRADE DOCUMENTEREN IN HET JOURNAAL</strong><span>Als je het niet opschrijft, leer je het niet. Simpel.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">VI</div>
+          <div class="check-text"><strong>GIJ ZULT NOOIT TRADEN MET GELD DAT JE NIET KUNT MISSEN</strong><span>Huurmoney. Spaargeld. Geleend geld. Dat is geen traden — dat is gokken met andermans leven.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">VII</div>
+          <div class="check-text"><strong>MAXIMAAL 3 TRADES PER DAG. NIET 4. NIET 5.</strong><span>Overtrading doodt accounts. Na trade 3 sluit je de computer. Geen uitzonderingen.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">VIII</div>
+          <div class="check-text"><strong>BIJ 5% DAGVERLIES: COMPUTER UIT. KLAAR.</strong><span>Je hebt gefaald vandaag. Accepteer het. Morgen is er ook een markt.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">IX</div>
+          <div class="check-text"><strong>VERGRROOT NOOIT EEN VERLIEZENDE POSITIE</strong><span>"Averaging down" heeft meer accounts vernietigd dan welke marktcrash dan ook. Nooit.</span></div>
+        </div>
+        <div class="check-item">
+          <div style="font-family:var(--title);font-size:11px;color:var(--red);width:28px;flex-shrink:0;text-align:center;text-shadow:0 0 6px var(--red)">X</div>
+          <div class="check-text"><strong>GEEN LIVE TRADES TOT 3 MAANDEN WINSTGEVEND OP DEMO</strong><span>Dit is de enige weg terug. Er is geen snelweg. Er is geen shortcut. Alleen dit.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       RISICO
+  ════════════════════════ -->
+  <div class="page" id="page-risico">
+    <div class="ph">
+      <h2>// RISICO CALCULATOR</h2>
+      <p>// Bereken je positiegrootte VOOR je instap. Altijd. Geen uitzonderingen. Geen "ik schat het wel."</p>
+    </div>
+
+    <div class="cmd-box" style="margin-bottom:20px">
+      <div class="cmd-tag">BEVEL</div>
+      <div class="cmd-verse">"Een verstandig mens denkt vooruit en vermijdt gevaar; een dwaas loopt door en krijgt de straf."</div>
+      <div class="cmd-ref">— Spreuken 27:12</div>
+      <div class="cmd-lesson"><strong>FEIT:</strong> Als jij €80K verloor, betekent dat jij nooit serieus risico hebt berekend. Je "voelde" je positiegrootte. Dat is voorbij. Elke trade begint hier. Geen calculator = geen trade.</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">// POSITIEGROOTTE CALCULATOR</div>
+        <div class="fg">
+          <label>Account grootte (€)</label>
+          <input type="number" id="r-account" placeholder="Bijv. 5000" oninput="calcRisk()">
+        </div>
+        <div class="fg">
+          <label>Max risico per trade (%)</label>
+          <input type="number" id="r-pct" value="2" min="0.1" max="5" step="0.1" oninput="calcRisk()">
+        </div>
+        <div class="fg">
+          <label>Stop-loss afstand (pips/punten)</label>
+          <input type="number" id="r-sl" placeholder="Bijv. 20" oninput="calcRisk()">
+        </div>
+        <div class="fg">
+          <label>Pipwaarde (€ per pip)</label>
+          <input type="number" id="r-pip" value="1" oninput="calcRisk()">
+        </div>
+        <div class="alert" id="risk-result"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">// R:R VERHOUDING — MINIMUM 1:2</div>
+        <div class="fg">
+          <label>Instapprijs (€)</label>
+          <input type="number" id="rr-entry" placeholder="Bijv. 100" oninput="calcRR()">
+        </div>
+        <div class="fg">
+          <label>Stop-loss prijs (€)</label>
+          <input type="number" id="rr-sl" placeholder="Bijv. 98" oninput="calcRR()">
+        </div>
+        <div class="fg">
+          <label>Take-profit prijs (€)</label>
+          <input type="number" id="rr-tp" placeholder="Bijv. 106" oninput="calcRR()">
+        </div>
+        <div class="alert" id="rr-result"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">// VERLIES REALITEIT — KIJK ERNAAR</div>
+      <table class="risk-table">
+        <thead><tr><th>Verlies</th><th>Winst nodig voor herstel</th><th>Status</th><th>Wet</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-neon">10%</span></td><td style="font-family:var(--mono);font-weight:700">11.1%</td><td>Herstelbaar</td><td style="font-family:var(--mono);font-size:11px;color:var(--text3)">Spr. 24:16 — sta op</td></tr>
+          <tr><td><span class="tag tag-amber">25%</span></td><td style="font-family:var(--mono);font-weight:700;color:var(--amber)">33%</td><td>Gevaarlijk</td><td style="font-family:var(--mono);font-size:11px;color:var(--text3)">Spr. 4:7 — zoek wijsheid</td></tr>
+          <tr><td><span class="tag tag-red">50%</span></td><td style="font-family:var(--mono);font-weight:700;color:var(--red)">100%</td><td>STOP NU</td><td style="font-family:var(--mono);font-size:11px;color:var(--text3)">Pred. 11:2 — bewaar rest</td></tr>
+          <tr><td><span class="tag tag-red">75%</span></td><td style="font-family:var(--mono);font-weight:700;color:var(--red)">300%</td><td>BIJNA ONMOGELIJK</td><td style="font-family:var(--mono);font-size:11px;color:var(--text3)">Job — begin opnieuw</td></tr>
+          <tr><td><span class="tag tag-red">90%+</span></td><td style="font-family:var(--mono);font-weight:700;color:var(--red)">900%</td><td>GAME OVER</td><td style="font-family:var(--mono);font-size:11px;color:var(--text3)">Openb. 21:5 — Hij maakt nieuw</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       HERSTEL
+  ════════════════════════ -->
+  <div class="page" id="page-herstel">
+    <div class="ph">
+      <h2>// HERSTELPROTOCOL</h2>
+      <p>// 4 fasen. Geen snelwegen. Geen shortcuts. Dit is de enige weg terug. Het duurt jaren. Accepteer dat.</p>
+    </div>
+
+    <div class="cmd-box" style="margin-bottom:20px">
+      <div class="cmd-tag">HET JOB PROTOCOL</div>
+      <div class="cmd-verse">"En de HEER gaf Job het dubbele van alles wat hij had gehad."</div>
+      <div class="cmd-ref">— Job 42:10</div>
+      <div class="cmd-lesson"><strong>CONTEXT:</strong> Job verloor alles. Niet een beetje. Alles. Hij rouwde, accepteerde, leerde, veranderde — en pas daarna herstel. Jij sloeg de rouw over en probeerde meteen terug te verdienen. Dat is waarom je €80K verloor. Doorloop de fasen. Sla geen enkele fase over.</div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-num" style="border-color:var(--red);color:var(--red)">01</div>
+      <div class="phase-body">
+        <div class="phase-title" style="color:var(--red)">STOP — VOLLEDIGE STILSTAND (WEEK 1-4)</div>
+        <div class="phase-text">SLUIT alle posities. VERWIJDER trading apps van je telefoon. SPREEK met iemand over dit verlies. STOP met de markt bekijken. Jij bent nu niet in staat om rationele beslissingen te nemen. Je brein is beschadigd door verlies. Accepteer dit feit.</div>
+        <div class="phase-verse" style="border-color:var(--red);background:rgba(255,45,45,0.05);color:rgba(255,150,143,0.9)">
+          "Wees stil en weet dat Ik God ben." — Psalm 46:11<br>
+          <strong style="font-style:normal;color:var(--red)">// OPDRACHT: Geen trades. Geen charts. Geen crypto nieuws. 30 dagen.</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-num" style="border-color:var(--amber);color:var(--amber)">02</div>
+      <div class="phase-body">
+        <div class="phase-title" style="color:var(--amber)">STUDIE — KENNIS OF DOOD (MAAND 2-6)</div>
+        <div class="phase-text">Lees alle lessen. Open een demo account. Handel ALLEEN op demo. Minimaal 3 maanden consistent winstgevend op demo voordat je OVERWEEGT om live te gaan. Als je dit haast, herhaal je jouw €80K verlies. Hosea 4:6 zegt: "mijn volk gaat verloren door gebrek aan kennis." Jij had kennis tekort.</div>
+        <div class="phase-verse" style="border-color:var(--amber);background:rgba(255,170,0,0.05);color:rgba(255,200,100,0.9)">
+          "Mijn volk gaat verloren door gebrek aan kennis." — Hosea 4:6<br>
+          <strong style="font-style:normal;color:var(--amber)">// OPDRACHT: 1 uur studeren per dag. Geen live trades tot 3mnd demo winst.</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-num" style="border-color:var(--neon);color:var(--neon)">03</div>
+      <div class="phase-body">
+        <div class="phase-title" style="color:var(--neon)">MICRO LIVE — START KLEIN OF START NIET (MAAND 7-12)</div>
+        <div class="phase-text">€500 maximum. Niet €5.000. Niet €2.000. €500. Elke euro die je meer inlegt is arrogantie. Je hebt niets bewezen. Bewijs eerst met €500 dat je het systeem kunt volgen. Focus NIET op winst. Focus op gedrag. Volgde je alle regels? Dat is succes.</div>
+        <div class="phase-verse" style="border-color:var(--neon);background:rgba(0,240,255,0.04);color:rgba(0,240,255,0.85)">
+          "Wie betrouwbaar is in het kleine, is ook betrouwbaar in het grote." — Lukas 16:10<br>
+          <strong style="font-style:normal;color:var(--neon)">// OPDRACHT: Max €500. 1-2% risico. 6 maanden gedisciplineerd gedrag.</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase-card">
+      <div class="phase-num" style="border-color:var(--green);color:var(--green)">04</div>
+      <div class="phase-body">
+        <div class="phase-title" style="color:var(--green)">SCHALEN — LANGZAAM OF NOOIT (JAAR 2+)</div>
+        <div class="phase-text">6 maanden consistent winstgevend = dan pas schalen. Verhoog kapitaal gradueel — nooit meer dan 25% per stap. Als je winstgevend bent, houd je regels aan. Als je verliezend bent, ga je TERUG naar de vorige fase. Er is geen eindpunt. Discipline is permanent.</div>
+        <div class="phase-verse" style="border-color:var(--green);background:rgba(0,255,136,0.05);color:rgba(0,255,136,0.85)">
+          "Zij die op de HEER wachten, hernieuwen hun kracht." — Jesaja 40:31<br>
+          <strong style="font-style:normal;color:var(--green)">// OPDRACHT: 6mnd winstgevend bewezen = dan pas meer kapitaal. Niet eerder.</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-brutal" style="margin-top:4px">
+      <div class="card-brutal-head">REALISTISCHE HERSTELOVERZICHT — €80K</div>
+      <table class="risk-table">
+        <thead><tr><th>Startkapitaal</th><th>Maandrendement</th><th>Herstel €80K</th><th>Haalbaarheid</th></tr></thead>
+        <tbody>
+          <tr><td style="font-family:var(--mono)">€1.000</td><td style="font-family:var(--mono)">10%/mnd</td><td style="font-family:var(--mono);color:var(--red)">~47 jaar</td><td><span class="tag tag-red">Fantasie</span></td></tr>
+          <tr><td style="font-family:var(--mono)">€5.000</td><td style="font-family:var(--mono)">5%/mnd</td><td style="font-family:var(--mono);color:var(--red)">~15 jaar</td><td><span class="tag tag-amber">Onwaarschijnlijk</span></td></tr>
+          <tr><td style="font-family:var(--mono)">€10.000</td><td style="font-family:var(--mono)">5%/mnd</td><td style="font-family:var(--mono);color:var(--amber)">~8 jaar</td><td><span class="tag tag-amber">Moeilijk</span></td></tr>
+          <tr><td style="font-family:var(--mono)">€20.000</td><td style="font-family:var(--mono)">5%/mnd</td><td style="font-family:var(--mono);color:var(--neon)">~5 jaar</td><td><span class="tag tag-neon">Haalbaar</span></td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-amber show" style="margin-top:10px">⚠ 5% PER MAAND CONSISTENT IS WAT DE TOP 5% VAN TRADERS HAALT. JIJ BENT ER NOG NIET. ACCEPTEER DAT.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       JOURNAAL
+  ════════════════════════ -->
+  <div class="page" id="page-journaal">
+    <div class="ph">
+      <h2>// ZWART BOEK</h2>
+      <p>// Schrijf elke dag. Als je een dag overslaat ben je niet serieus. Elke trade. Elke emotie. Geen filter. De waarheid.</p>
+    </div>
+
+    <div class="cmd-box" style="margin-bottom:20px">
+      <div class="cmd-tag">BEVEL</div>
+      <div class="cmd-verse">"Schrijf de visie op en zet hem duidelijk op tabletten, zodat men er vlug op kan lezen."</div>
+      <div class="cmd-ref">— Habakuk 2:2</div>
+      <div class="cmd-lesson"><strong>REDEN:</strong> Traders die niet journaliseren herhalen dezelfde fouten eeuwig. Jij hebt bewezen dat je zonder zelfkennis €80K kunt verliezen. Dit journaal is je spiegel. Kijk erin. Ook als het pijnlijk is. Especially als het pijnlijk is.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">// NIEUWE ENTRY — WEES EERLIJK</div>
+      <div style="margin-bottom:12px">
+        <label>// HUIDIGE STAAT</label>
+        <div class="mood-grid" id="mood-grid">
+          <div class="mood-btn sel" onclick="selMood(this,'😰','ANGSTIG')"><span class="me">😰</span><span class="ml">Angstig</span></div>
+          <div class="mood-btn" onclick="selMood(this,'😤','GEFRUSTREERD')"><span class="me">😤</span><span class="ml">Gefrustreerd</span></div>
+          <div class="mood-btn" onclick="selMood(this,'😔','NEERGESLAGEN')"><span class="me">😔</span><span class="ml">Neergeslagen</span></div>
+          <div class="mood-btn" onclick="selMood(this,'😡','KWAAD')"><span class="me">😡</span><span class="ml">Kwaad</span></div>
+          <div class="mood-btn" onclick="selMood(this,'💪','GEFOCUST')"><span class="me">💪</span><span class="ml">Gefocust</span></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="fg"><label>// Instrument</label><input type="text" id="j-instrument" placeholder="EUR/USD, BTC, AEX..."></div>
+        <div class="fg"><label>// P&L vandaag (€)</label><input type="number" id="j-pnl" placeholder="-150 of +80"></div>
+      </div>
+      <div class="fg"><label>// Wat deed je vandaag? (trades)</label><textarea id="j-trades" placeholder="Beschrijf exact: instap, exit, waarom..."></textarea></div>
+      <div class="fg"><label>// Welke emoties? Wees eerlijk.</label><textarea id="j-emoties" placeholder="Was je bang? Greedy? Ongeduldig? Schrijf het op." style="min-height:60px"></textarea></div>
+      <div class="fg"><label>// Wat leer je? Wat doe je anders?</label><textarea id="j-les" placeholder="Specifiek. Niet 'ik doe beter mijn best.' Wat EXACT?" style="min-height:60px"></textarea></div>
+      <div class="fg"><label>// Gebed (optioneel)</label><textarea id="j-gebed" placeholder="Spreek met God over vandaag." style="min-height:50px"></textarea></div>
+      <button class="btn btn-neon" onclick="saveJournal()">▶ OPSLAAN</button>
+      <div class="alert" id="j-alert"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">// EERDERE ENTRIES <span class="tag tag-neon" id="j-count">0</span></div>
+      <div id="journal-entries"><div style="text-align:center;padding:32px;color:var(--text3);font-family:var(--mono);font-size:12px;letter-spacing:0.1em">// GEEN ENTRIES — BEGIN VANDAAG</div></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════
+       AFFIRMATIES
+  ════════════════════════ -->
+  <div class="page" id="page-affirmaties">
+    <div class="ph">
+      <h2>// GEESTELIJKE WAPENRUSTING</h2>
+      <p>// Spreek dit dagelijks hardop uit. Niet éénmalig. Elke. Dag. Programmeer jouw geest of de markt doet het.</p>
+    </div>
+    <div id="affirm-container"></div>
+    <div class="card-brutal" style="margin-top:4px">
+      <div class="card-brutal-head">TRADERS GEBED — SPREEK DIT HARDOP</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--text2);line-height:2.2;letter-spacing:0.03em">
+        "Heer, ik erken dat ik handelde vanuit hebzucht, angst en arrogantie.<br>
+        Ik vertrouwde op mijn eigen inzicht — en verloor €80.000.<br>
+        <span style="color:var(--red)">Ik vergeef mezelf — maar ik accepteer de consequenties.</span><br>
+        Geef mij een geest van discipline, geduld en onderwerping aan regels.<br>
+        Laat mijn herstel gebouwd zijn op wijsheid — niet op optimisme.<br>
+        <span style="color:var(--neon)">Ik volg voortaan het plan — niet mijn gevoel.</span><br>
+        <strong style="color:var(--text);font-style:normal">Amen."</strong>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</main>
+
+<script>
+// ════════════════════════════════
+// DATA
+// ════════════════════════════════
+const dagwoordVerzen = [
+  { tag:"GEESTBEHEERSING", tekst:"Een man die zijn geest niet beheerst, is als een stad waarvan de muren gebroken zijn.", ref:"Spreuken 25:28", les:"DIRECTE VERTALING: Jij bent die stad. €80K verlies is het bewijs van gebroken muren. Geestbeheersing is niet zacht zijn — het is het ijzeren fundament van elke winnende trader. Zonder dit ben je kanonnenvlees voor de markt." },
+  { tag:"GEVAAR ZIEN", tekst:"Een verstandig mens ziet het gevaar en verbergt zich, maar onervaren mensen lopen door en lijden schade.", ref:"Spreuken 22:3", les:"Je liep door. Je zag de signalen — de verliezen stapelden op — maar je bleef. 'Het komt goed.' Nee. Het kwam niet goed. Een stop-loss is het verbergen voor gevaar. Gebruik het." },
+  { tag:"GEDULD OF DOOD", tekst:"De ziel van de trage begeert, maar heeft niets; maar de ziel van de vlijtigen zal vet gemaakt worden.", ref:"Spreuken 13:4", les:"Jij wilde snel rijk worden. Dat is de valkuil. De markt is een maratón, niet een sprint. Professionals wachten uren op één perfecte setup. Jij plaatste tientallen impulsieve trades. Stop met jagen." },
+  { tag:"PLANNING OF NIETS", tekst:"Want wie van u, die een toren wil bouwen, gaat niet eerst zitten en berekent de kosten?", ref:"Lukas 14:28", les:"Jezus zelf zegt het: bereken de kosten VOOR je begint. Geen trading plan? Geen trade. Geen positieberekening? Geen trade. Geen stop-loss bepaald? Geen trade. Dit is niet optioneel." },
+  { tag:"KENNIS OF RUÏNE", tekst:"Mijn volk gaat verloren door gebrek aan kennis.", ref:"Hosea 4:6", les:"Je verloor €80K door kennis tekort. Niet door pech. Professionele traders studeren jaren voor ze consistent winstgevend zijn. Jij had te weinig kennis en te veel zelfvertrouwen. Dat is een dodelijke combinatie." },
+  { tag:"TROUW IN HET KLEINE", tekst:"Wie betrouwbaar is in het kleine, is ook betrouwbaar in het grote.", ref:"Lukas 16:10", les:"Begin met €500. Bewijs jezelf met €500. Als je je regels niet volgt met €500, volg je ze niet met €50.000. Groot kapitaal aan een ondisciplineerde trader geven is hem een pistool geven." },
+  { tag:"HERSTEL MOGELIJK", tekst:"Ik zal u de jaren vergoeden die de sprinkhaan heeft opgegeten.", ref:"Joël 2:25", les:"God herstelt — maar alleen na berouw en verandering van gedrag. Niet na hetzelfde gedrag met meer optimisme herhalen. Jouw herstel is mogelijk. Maar het begint met het accepteren dat jij de oorzaak van het verlies was." },
+  { tag:"VREES VERBODEN", tekst:"God heeft ons niet gegeven een geest van vrees, maar van kracht, liefde en een gezonde geest.", ref:"2 Timotheüs 1:7", les:"Angst-traden en greed-traden zijn beide verboden. Je hebt een gezonde geest gekregen — gebruik hem. Dat betekent: rationeel, systeem-gedreven, emotievrij traden. Niet gokken met hoop." },
+  { tag:"TWEE MEESTERS", tekst:"Niemand kan twee heren dienen. Je kunt niet God dienen en ook de mammon.", ref:"Mattheüs 6:24", les:"Als geld jouw god is — en verlies jou breekt — dan dien je de mammon. Handel als rentmeester, niet als gokker. Het geld is niet van jou. Je beheert het. Beheer het verantwoordelijk." },
+  { tag:"HERSTEL VAN JOB", tekst:"En de HEER gaf Job het dubbele van alles wat hij had gehad.", ref:"Job 42:10", les:"Job's herstel kwam NADAT hij accepteerde, leerde en veranderde. Niet ervoor. Niet tijdens. Erna. Jij staat aan het begin van jouw Job-moment. Ga de fasen door. Sla niets over." }
+];
+
+const lessen = [
+  { icon:"💀", title:"Les 1: Jij bent de grootste vijand", tekst:"Stop met de schuld te geven aan de markt, je broker, de economie of je strategie. De markt was er. Jij was er. Jij verloor. Punt.\n\nElke keer dat jij een trade plaatste op basis van gevoel — FOUT. Elke keer dat je een verliezende positie vasthield omdat 'het wel goed komt' — FOUT. Elke keer dat je na een verlies direct terugkwam voor revenge — FOUT.\n\nJouw brein is geprogrammeerd om slecht te traden. Angst. Hebzucht. Spijt. Hoop. Dit zijn jouw vijanden. De eerste stap is ze herkennen — niet als zwakheid, maar als biologische saboteurs die verslagen moeten worden met een systeem.", vers:"Een man die zijn geest niet beheerst, is als een stad waarvan de muren gebroken zijn.", ref:"Spreuken 25:28" },
+  { icon:"🎯", title:"Les 2: Risicobeheer is het enige dat telt", tekst:"Je vraagt: 'hoe verdien ik geld?' Foute vraag.\n\nDe juiste vraag: 'hoe overleed ik lang genoeg om goed te worden?'\n\nDe 2% regel: risiceer NOOIT meer dan 2% van je account per trade. Met €5.000 account is dat €100 per trade. Dat voelt te klein. Dat is precies waarom het werkt.\n\nMet 2% risico kun je 50 opeenvolgende verliezende trades overleven. Met 10% risico ben je na 10 trades bankroet. De keuze is simpel.", vers:"Een verstandig mens ziet het gevaar en verbergt zich, maar onervaren mensen lopen door en lijden schade.", ref:"Spreuken 22:3" },
+  { icon:"⏳", title:"Les 3: Overtrading doodt accounts", tekst:"Hoeveel trades plaatste jij per dag? Meer dan 3? Dan weet je een van jouw problemen.\n\nProfessionele traders wachten uren. Soms dagen. Op de perfecte setup die past bij hun systeem. Ze missen liever 10 trades dan dat ze 1 slechte trade plaatsen.\n\nJij plaatste 10 trades en hoopte op geluk. Dat is geen strategie — dat is een casino zonder free drinks.\n\nMaximum 3 trades per dag. Soms 0. Nul is ook een positie.", vers:"De ziel van de trage begeert, maar heeft niets; maar de vlijtigen zal vet gemaakt worden.", ref:"Spreuken 13:4" },
+  { icon:"📊", title:"Les 4: Verlies is normaal — Ruïne is een keuze", tekst:"Elke trader verliest. George Soros verliest. Paul Tudor Jones verliest. Het verschil: zij begrenzen hun verliezen.\n\nJij liet verliezen doorlopen omdat je hoopte op herstel. Dat is niet optimisme — dat is ontkenning.\n\nEen stop-loss is een beslissing die je neemt met een helder hoofd, VOOR de trade. Als je eenmaal in een trade zit, werkt je brein niet meer rationeel. Zet de stop VOOR je instap. Verplaats hem nooit in de verkeerde richting.", vers:"Want wie van u, die een toren wil bouwen, gaat niet eerst zitten en berekent de kosten?", ref:"Lukas 14:28" },
+  { icon:"📓", title:"Les 5: Zonder journaal ben je blind", tekst:"Als je jouw trades niet opschrijft, zie je jouw patronen niet. Je maakt dezelfde fout elke week opnieuw — maar je weet het niet.\n\nHet journaal dwingt je om eerlijk te zijn. Was deze trade volgens het plan? Welke emotie had ik? Was het een goede trade of had ik gewoon geluk?\n\nNa 100 geregistreerde trades zie je exact welke setups werken en welke niet. Dat is je edge. Zonder journaal heb je geen edge — heb je alleen chaos.", vers:"Schrijf de visie op en zet hem duidelijk op tabletten.", ref:"Habakuk 2:2" },
+  { icon:"🔒", title:"Les 6: Demo eerst — geen uitzonderingen", tekst:"'Demo is niet echt.' Dat hoor ik al. En jij met dat argument verloor €80K op een real account.\n\n3 maanden consistent winstgevend op demo is het minimum bewijs dat je een werkend systeem hebt. Niet 3 goede trades. 3 maanden. Met journaal. Met statistieken.\n\nAls je dit overslaat — en live gaat voordat je dit bewijs hebt — dan verdiend je het verlies dat eraan komt. De markt is genadeloos. Wees voorbereider dan de markt verwacht.", vers:"Wie betrouwbaar is in het kleine, is ook betrouwbaar in het grote.", ref:"Lukas 16:10" }
+];
+
+const affirmaties = [
+  { tekst:"IK BEN EEN TRADER MET REGELS. MIJN GEVOEL TRADET NIET. MIJN SYSTEEM TRADET.", vers:"Een man die zijn geest beheerst, is machtiger dan wie een stad inneemt. — Spreuken 16:32" },
+  { tekst:"MIJN €80.000 VERLIES IS MIJN LESGELD. HET IS BETAALD. NU LEER IK.", vers:"Al valt hij, hij zal niet neerstorten; want de HEER ondersteunt zijn hand. — Psalm 37:24" },
+  { tekst:"IK RISICEER NOOIT MEER DAN 2% PER TRADE. DIT IS WET. GEEN UITZONDERINGEN.", vers:"Een verstandig mens ziet het gevaar en verbergt zich. — Spreuken 22:3" },
+  { tekst:"IK HANDEL NIET MET GELD DAT IK NIET KAN MISSEN. RENTMEESTERSCHAP IS HEILIG.", vers:"Niemand kan twee heren dienen. — Mattheüs 6:24" },
+  { tekst:"IK STOP MET TRADEN NA 3 VERLIES-TRADES. MORGEN IS ER OOK EEN MARKT.", vers:"Wees stil en weet dat Ik God ben. — Psalm 46:11" },
+  { tekst:"IK SCHRIJF ELKE TRADE OP. ELKE EMOTIE. ELKE LES. ZONDER JOURNAAL, GEEN TRADE.", vers:"Schrijf de visie op en zet hem duidelijk op tabletten. — Habakuk 2:2" }
+];
+
+const checklist = [
+  { text:"Heb ik een schriftelijk trading plan voor vandaag?", sub:"Geen plan op papier = geen trades vandaag. Punt." },
+  { text:"Ben ik emotioneel stabiel? (niet kwaad, niet euforisch)", sub:"Als je twijfelt: je bent het niet. Wacht tot morgen." },
+  { text:"Heb ik mijn max dagverlies bepaald en geaccepteerd?", sub:"Wat is het bedrag waarbij je stopt? Schrijf het op." },
+  { text:"Heeft elke setup een stop-loss bepaald vóór instap?", sub:"Geen stop = geen trade. Geen uitzonderingen. Nooit meer." },
+  { text:"Is mijn R:R minimaal 1:2 voor elke geplande trade?", sub:"Als reward minder is dan 2x risico: sla de trade over." },
+  { text:"Heb ik mijn 2% positiegrootte berekend met de calculator?", sub:"Niet geschat. Berekend. Met de calculator op deze site." },
+  { text:"Heb ik economic news gecheckt voor vandaag?", sub:"High-impact news = geen trades in dat uur. Te gevaarlijk." },
+  { text:"Ben ik bereid dit verlies te accepteren als het misloopt?", sub:"Als nee: positie is te groot. Verklein of trade niet." },
+];
+
+// ════════════════════════════════
+// NAV
+// ════════════════════════════════
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { home:'// BRIEFING', dagwoord:'// BIJBELS COMMANDO', lessen:'// HARDE LESSEN', regels:'// DE WET', risico:'// RISICO CALCULATOR', herstel:'// HERSTELPROTOCOL', journaal:'// ZWART BOEK', affirmaties:'// WAPENRUSTING' };
+  document.getElementById('tb-title').textContent = titles[id] || '//' + id.toUpperCase();
+}
+
+// ════════════════════════════════
+// DAGWOORD
+// ════════════════════════════════
+let verseIdx = 0;
+
+function renderDagwoord() {
+  const v = dagwoordVerzen[verseIdx];
+  document.getElementById('dw-carousel').innerHTML = `
+    <div class="cmd-box" style="margin-bottom:14px">
+      <div class="cmd-tag">${v.tag} — ${verseIdx+1}/${dagwoordVerzen.length}</div>
+      <div class="cmd-verse">"${v.tekst}"</div>
+      <div class="cmd-ref">— ${v.ref}</div>
+      <div class="cmd-lesson"><strong>COMMANDO:</strong> ${v.les}</div>
+    </div>
+  `;
+  const alle = document.getElementById('alle-verzen');
+  alle.innerHTML = '';
+  dagwoordVerzen.forEach((vv, i) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'background:var(--surface2);border:1px solid var(--border);padding:12px 16px;cursor:pointer;transition:all 0.15s;position:relative';
+    d.onmouseover = () => d.style.borderColor = 'var(--border2)';
+    d.onmouseout  = () => d.style.borderColor = 'var(--border)';
+    d.onclick = () => { verseIdx = i; renderDagwoord(); };
+    d.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="tag tag-neon">${vv.tag}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">${vv.ref}</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2);line-height:1.6">${vv.tekst.substring(0,90)}...</div>
+    `;
+    alle.appendChild(d);
+  });
+}
+
+function nextVers() { verseIdx = (verseIdx+1) % dagwoordVerzen.length; renderDagwoord(); }
+function prevVers() { verseIdx = (verseIdx-1+dagwoordVerzen.length) % dagwoordVerzen.length; renderDagwoord(); }
+
+// ════════════════════════════════
+// LESSEN
+// ════════════════════════════════
+function renderLessen() {
+  const cont = document.getElementById('lessen-container');
+  lessen.forEach((l, i) => {
+    const d = document.createElement('div');
+    d.className = 'lesson-item';
+    d.innerHTML = `
+      <div class="li-icon">${l.icon}</div>
+      <div class="li-body">
+        <div class="li-title">${l.title}</div>
+        <div class="li-text">${l.tekst.replace(/\n\n/g,'<br><br>')}</div>
+        <div class="li-verse">"${l.vers}"<br><strong>— ${l.ref}</strong></div>
+      </div>
+    `;
+    d.addEventListener('mouseenter', () => { state.lessen = Math.max(state.lessen, i+1); updateKPIs(); });
+    cont.appendChild(d);
+  });
+}
+
+// ════════════════════════════════
+// AFFIRMATIES
+// ════════════════════════════════
+function renderAffirmaties() {
+  const cont = document.getElementById('affirm-container');
+  affirmaties.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'affirm-box';
+    d.innerHTML = `
+      <div class="a-cmd">// DAGELIJKS COMMANDO</div>
+      <div class="a-text">"${a.tekst}"</div>
+      <div style="height:1px;background:rgba(191,0,255,0.15);margin:14px 0"></div>
+      <div class="a-ref">${a.vers}</div>
+    `;
+    cont.appendChild(d);
+  });
+}
+
+// ════════════════════════════════
+// CHECKLIST
+// ════════════════════════════════
+let checked = new Array(checklist.length).fill(false);
+
+function renderChecklist() {
+  const cont = document.getElementById('checklist-container');
+  cont.innerHTML = '';
+  checklist.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'check-item';
+    d.innerHTML = `
+      <div class="check-box ${checked[i]?'checked':''}" id="cb-${i}" onclick="toggleCheck(${i})"></div>
+      <div class="check-text"><strong>${c.text}</strong><span>${c.sub}</span></div>
+    `;
+    cont.appendChild(d);
+  });
+}
+
+function toggleCheck(i) {
+  checked[i] = !checked[i];
+  const box = document.getElementById('cb-'+i);
+  box.className = 'check-box ' + (checked[i] ? 'checked' : '');
+  const done = checked.filter(Boolean).length;
+  const a = document.getElementById('check-alert');
+  if (done === checklist.length) {
+    a.className = 'alert alert-neon show';
+    a.textContent = '▶ ALLE CHECKS ACTIEF. JE MAG TRADEN. BREEK GEEN ENKELE REGEL.';
+  } else {
+    a.className = 'alert alert-amber show';
+    a.textContent = `⚠ ${done}/${checklist.length} CHECKS. VINK ALLES AF VOOR JE BEGINT.`;
+  }
+}
+
+function checkAll() {
+  checked = new Array(checklist.length).fill(true);
+  renderChecklist();
+  const a = document.getElementById('check-alert');
+  a.className = 'alert alert-neon show';
+  a.textContent = '▶ ALLE CHECKS ACTIEF. JE MAG TRADEN. BREEK GEEN ENKELE REGEL.';
+}
+
+function resetCheck() {
+  checked = new Array(checklist.length).fill(false);
+  renderChecklist();
+  document.getElementById('check-alert').className = 'alert';
+}
+
+// ════════════════════════════════
+// RISICO
+// ════════════════════════════════
+function calcRisk() {
+  const acc = parseFloat(document.getElementById('r-account').value)||0;
+  const pct = parseFloat(document.getElementById('r-pct').value)||2;
+  const sl  = parseFloat(document.getElementById('r-sl').value)||0;
+  const pip = parseFloat(document.getElementById('r-pip').value)||1;
+  const el  = document.getElementById('risk-result');
+  if (!acc||!sl) { el.className='alert'; return; }
+  const maxRisk = acc * pct / 100;
+  const lot = sl>0&&pip>0 ? maxRisk/(sl*pip) : 0;
+  el.className = 'alert alert-neon show';
+  el.innerHTML = `MAX VERLIES / TRADE: €${maxRisk.toFixed(2)}\nPOSITIEGROOTTE: ${lot.toFixed(2)} lots\n▶ ${Math.floor(acc/maxRisk)} opeenvolgende verliezen overleefbaar.`;
+}
+
+function calcRR() {
+  const entry = parseFloat(document.getElementById('rr-entry').value)||0;
+  const sl    = parseFloat(document.getElementById('rr-sl').value)||0;
+  const tp    = parseFloat(document.getElementById('rr-tp').value)||0;
+  const el    = document.getElementById('rr-result');
+  if (!entry||!sl||!tp) { el.className='alert'; return; }
+  const risk = Math.abs(entry-sl);
+  const rew  = Math.abs(tp-entry);
+  const rr   = rew/risk;
+  const cls  = rr>=2 ? 'alert-green' : rr>=1 ? 'alert-amber' : 'alert-red';
+  el.className = `alert ${cls} show`;
+  el.innerHTML = `RISICO: €${risk.toFixed(2)} | REWARD: €${rew.toFixed(2)}\nR:R = 1:${rr.toFixed(2)}\n${rr>=2?'▶ ACCEPTABEL. Minimaal 1:2 behaald.':rr>=1?'⚠ TE LAAG. Probeer 1:2 of hoger.':'✕ TRADE NIET. R:R te laag.'}`;
+}
+
+// ════════════════════════════════
+// JOURNAAL
+// ════════════════════════════════
+let journalEntries = [];
+let selectedMood = { emoji:'😰', label:'ANGSTIG' };
+let jVerseIdx = 0;
+
+const jVerzen = [
+  { t:"Al valt hij, hij zal niet neerstorten; want de HEER ondersteunt zijn hand.", r:"Psalm 37:24" },
+  { t:"Ik zal u de jaren vergoeden die de sprinkhaan heeft opgegeten.", r:"Joël 2:25" },
+  { t:"Want Ik ken de gedachten die Ik over u koester — een toekomst en een hoop.", r:"Jeremia 29:11" },
+  { t:"God heeft ons niet gegeven een geest van vrees, maar van kracht.", r:"2 Timotheüs 1:7" },
+  { t:"Ik kan alles door Christus die mij kracht geeft.", r:"Filippenzen 4:13" },
+];
+
+function selMood(el, emoji, label) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedMood = { emoji, label };
+}
+
+function saveJournal() {
+  const trades = document.getElementById('j-trades').value.trim();
+  if (!trades) {
+    const a = document.getElementById('j-alert');
+    a.className = 'alert alert-red show';
+    a.textContent = '✕ BESCHRIJF JE TRADES. GEEN EXCUSES.';
+    return;
+  }
+  const v = jVerzen[jVerseIdx % jVerzen.length]; jVerseIdx++;
+  journalEntries.unshift({
+    date: new Date().toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
+    mood: selectedMood,
+    instrument: document.getElementById('j-instrument').value||'—',
+    pnl: parseFloat(document.getElementById('j-pnl').value)||null,
+    trades, emoties: document.getElementById('j-emoties').value,
+    les: document.getElementById('j-les').value,
+    gebed: document.getElementById('j-gebed').value,
+    vers: v
+  });
+  state.journal = journalEntries.length;
+  updateKPIs(); renderJournal();
+  ['j-trades','j-emoties','j-les','j-gebed','j-instrument','j-pnl'].forEach(id => document.getElementById(id).value='');
+  const a = document.getElementById('j-alert');
+  a.className = 'alert alert-neon show';
+  a.textContent = '▶ ENTRY OPGESLAGEN. GOED. DIT IS GROEI.';
+}
+
+function renderJournal() {
+  const cont = document.getElementById('journal-entries');
+  document.getElementById('j-count').textContent = journalEntries.length;
+  if (!journalEntries.length) { cont.innerHTML='<div style="text-align:center;padding:32px;color:var(--text3);font-family:var(--mono);font-size:11px;letter-spacing:0.1em">// GEEN ENTRIES — BEGIN VANDAAG</div>'; return; }
+  cont.innerHTML='';
+  journalEntries.forEach((e, i) => {
+    const pc = !e.pnl?'var(--text3)':e.pnl>=0?'var(--green)':'var(--red)';
+    const pt = !e.pnl?'—':(e.pnl>=0?'+':'')+'€'+Math.abs(e.pnl).toFixed(2);
+    const d = document.createElement('div');
+    d.className = 'j-entry';
+    d.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div class="j-date">${e.date}</div>
+          <div class="j-mood-label">${e.mood.emoji} ${e.mood.label} — <span style="font-family:var(--mono)">${e.instrument}</span> — <span style="color:${pc};font-family:var(--mono);font-weight:700">${pt}</span></div>
+        </div>
+        <button onclick="delEntry(${i})" style="background:none;border:1px solid rgba(255,45,45,0.2);color:var(--red);cursor:pointer;padding:4px 8px;font-family:var(--mono);font-size:10px;transition:all 0.15s" onmouseover="this.style.background='rgba(255,45,45,0.1)'" onmouseout="this.style.background='none'">✕ DEL</button>
+      </div>
+      <div class="j-text">${e.trades}</div>
+      ${e.les?`<div style="font-family:var(--mono);font-size:11px;color:var(--neon);padding:6px 0;border-top:1px solid var(--border);margin-top:8px;letter-spacing:0.03em">▶ LES: ${e.les}</div>`:''}
+      <div class="j-verse-block">"${e.vers.t}"<div class="j-verse-ref">— ${e.vers.r}</div></div>
+    `;
+    cont.appendChild(d);
+  });
+}
+
+function delEntry(i) { journalEntries.splice(i,1); state.journal=journalEntries.length; updateKPIs(); renderJournal(); }
+
+// ════════════════════════════════
+// STATE & UTILS
+// ════════════════════════════════
+const state = { lessen:0, journal:0 };
+
+function updateKPIs() {
+  document.getElementById('kpi-lessen').textContent = state.lessen;
+  document.getElementById('kpi-journal').textContent = state.journal;
+}
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+renderDagwoord();
+renderLessen();
+renderAffirmaties();
+renderChecklist();
+renderJournal();
+</script>
+</body>
+</html>
